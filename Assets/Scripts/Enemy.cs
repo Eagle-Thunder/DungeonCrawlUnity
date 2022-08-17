@@ -1,138 +1,156 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-internal class EnemyStats
-{
-    internal int attackAnimation;
-    internal float hitpoints;
-    internal float speed;
-    internal float iFrames;
-    internal float playerProximity;
-    internal float aggroRange;
-    internal float attackRate;
-	internal EnemyStats() {
-        attackAnimation = 1;
-        hitpoints = 100;
-        speed = 4f;
-        iFrames = 0.7f;
-        playerProximity = 1;
-        aggroRange = 10;
-        attackRate = 1.3f;
-}
-}
-internal class EnemyComponents
-{
-    internal readonly AudioSource Audio;
-    internal readonly PlayerController enemy;
-    internal readonly Rigidbody body;
-    internal readonly Animator animator;
-    internal readonly EnemyStats stat;
-    internal EnemyComponents(Rigidbody rb,Animator an,AudioSource AS,PlayerController pc)
-	{
-        body = rb;
-        animator = an;
-        Audio = AS;
-        enemy = pc;
-        stat = new EnemyStats();
-	}
-}
 public class Enemy : MonoBehaviour
 {
+    public float hitpoints = 100;
+    private PlayerController player;
+    private float iFrames = 0.7f;
+    private bool canTakeDamage = true;
+    private Rigidbody enemyRb;
+    public float speed = 4f;
+    private float playerProximity = 1;
+    private float aggroRange = 10;
+    private Animator enemyAnimator;
+    private float attackRate = 1.3f;
+    private bool canAttack = true;
+    public bool isAttacking = false;
+    public int attackAnimation = 1;
+    private bool isAlive = true;
+    private bool isAggressive = false;
     public GameObject[] drops;
+    private AudioSource enemyAudio;
     public AudioClip getHitSound;
     public AudioClip attackSound;
-    EnemyComponents My;
-    Entity I;
-
-    public bool IsAttacking() => I.AmIn(Stance.Engaged);
+    // Start is called before the first frame update
     void Start()
     {
-        I = new Entity();
-        My = new EnemyComponents(
-            GetComponent<Rigidbody>(),
-            GetComponent<Animator>(),
-            GetComponent<AudioSource>(),
-            GameObject.Find("Player").GetComponent<PlayerController>()
-            );
-        My.animator.SetInteger("attackAnimation", My.stat.attackAnimation);
+        enemyRb = GetComponent<Rigidbody>();
+        enemyAnimator = GetComponent<Animator>();
+        enemyAudio = GetComponent<AudioSource>();
+        player = GameObject.Find("Player").GetComponent<PlayerController>();
+        enemyAnimator.SetInteger("attackAnimation", attackAnimation);
     }
+
     private void FixedUpdate()
     {
-        if (I.AmIn(Stance.Agro) && My.enemy.IsAlive())
+        if (isAlive && player.isAlive && isAggressive)
         {
-            if (I.AmIn(Stance.InRange)) Stop();
-            else MoveToPlayer();
+            if (IsInRange())
+            {
+                Stop();
+            }
+            else
+            {
+                moveToPlayer();
+            }
         }
     }
+    // Update is called once per frame
     void Update()
     {
-        Assess(Stance.InRange, My.stat.playerProximity);
-        Assess(Stance.Aggressive, My.stat.aggroRange);
-        if (I.AmIn(Stance.Agro) && My.enemy.IsAlive())
+        CheckAggro();
+        if (isAlive && player.isAlive && isAggressive)
         {
-            if (I.AmIn(Stance.InRange) && I.AmIn(Stance.AttackReady)) Attack();
+            if (IsInRange() && canAttack)
+            {
+                Attack();
+            }
             Rotate();
         }
         AnimateMovement();
     }
     void AnimateMovement()
     {
-        My.animator.SetFloat("vertical_input", My.body.velocity.z);
-        My.animator.SetFloat("horizontal_input", My.body.velocity.x);
+        enemyAnimator.SetFloat("vertical_input", enemyRb.velocity.z);
+        enemyAnimator.SetFloat("horizontal_input", enemyRb.velocity.x);
     }
-    void Rotate() => transform.LookAt(My.enemy.transform.position);
+    void Rotate()
+    {
+        transform.LookAt(player.transform.position);
+    }
     void Attack()
     {
-        I.Enter(Stance.Engaged);
-        I.Exit(Stance.AttackReady);
-        My.animator.SetTrigger("Attack");
-        Invoke("ResetAttack", My.stat.attackRate);
-        My.Audio.PlayOneShot(attackSound);
+        isAttacking = true;
+        canAttack = false;
+        enemyAnimator.SetTrigger("Attack");
+        Invoke("ResetAttack", attackRate);
+        enemyAudio.PlayOneShot(attackSound);
     }
-    void Stop() => My.body.velocity = Vector3.zero;
-    void Assess(Stance flag, float range)
+    bool IsInRange()
     {
-        if (Vector3.Distance(transform.position, My.enemy.transform.position) < range) I.Enter(flag);
-        else I.Exit(flag);
+        float xProximity = Mathf.Abs(player.transform.position.x - transform.position.x);
+        float zProximity = Mathf.Abs(player.transform.position.z - transform.position.z);
+        if (xProximity <= playerProximity && zProximity <= playerProximity)
+        {
+            return true;
+        }
+        return false;
     }
-    void MoveToPlayer()
+    void Stop()
     {
-        Vector3 velocity = My.stat.speed * Time.deltaTime * (My.enemy.transform.position - transform.position).normalized;
-        velocity.y = My.body.velocity.y;
-        My.body.velocity = velocity;
+        enemyRb.velocity = Vector3.zero;
+    }
+    void CheckAggro()
+    {
+        float xProximity = Mathf.Abs(player.transform.position.x - transform.position.x);
+        float zProximity = Mathf.Abs(player.transform.position.z - transform.position.z);
+        if (xProximity <= aggroRange && zProximity <= aggroRange)
+        {
+            isAggressive = true;
+        }
+        //else isAggressive = false;
+    }
+    void moveToPlayer()
+    {
+        //enemyRb.AddForce((player.transform.position - transform.position).normalized * speed * Time.deltaTime, ForceMode.Impulse);
+        Vector3 velocity = (player.transform.position - transform.position).normalized * speed * Time.deltaTime;
+        velocity.y = enemyRb.velocity.y;
+        enemyRb.velocity = velocity;
     }
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player Weapon") && I.AmIn(Stance.Damageable) && My.enemy.IsAttacking())
+        if (other.CompareTag("Player Weapon") && canTakeDamage && player.isAttacking)
         {
-            My.stat.hitpoints -= My.enemy.Damage();
-            My.Audio.PlayOneShot(getHitSound);
-            I.Enter(Stance.Aggressive);
-            if (I.AmIn(Stance.Alive))
+            hitpoints -= player.damage;
+            enemyAudio.PlayOneShot(getHitSound);
+            isAggressive = true;
+            if (isAlive)
             {
-                if (My.stat.hitpoints <= 0)
+                if (hitpoints <= 0)
                 {
-                    I.Exit(Stance.Alive);
-                    My.animator.SetTrigger("die");
+                    isAlive = false;
+                    enemyAnimator.SetTrigger("die");
                     DropLoot();
                 }
-                else My.animator.SetTrigger("getHit");
+                else
+                {
+                    enemyAnimator.SetTrigger("getHit");
+                }
             }
-            I.Exit(Stance.Damageable);
-            Debug.Log("Enemy has " + My.stat.hitpoints + " left!");
-            Invoke("ResetIFrames", My.stat.iFrames);
+            canTakeDamage = false;
+            Debug.Log("Enemy has " + hitpoints + " left!");
+            Invoke("ResetIFrames", iFrames);
         }
     }
-    private void ResetIFrames() => I.Enter(Stance.Damageable);
+
+    private void ResetIFrames()
+    {
+        canTakeDamage = true;
+    }
     void ResetAttack()
     {
-        I.Enter(Stance.AttackReady);
-        I.Exit(Stance.Engaged);
+        canAttack = true;
+        isAttacking = false;
     }
     void DropLoot()
     {
-        int dropRate = Random.Range(0, 101);
-        if (dropRate > 25) return;
-        int index = Random.Range(0, drops.Length);
-        Instantiate(drops[index], transform.position + Vector3.up, transform.rotation);
+        float dropRate = Random.Range(0, 101);
+        if (dropRate <= 25)
+        {
+            int index = Random.Range(0, 1);
+            Instantiate(drops[index], transform.position + Vector3.up, transform.rotation);
+        }
     }
 }

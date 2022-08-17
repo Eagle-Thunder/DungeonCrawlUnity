@@ -138,7 +138,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 757ca0fa15e5e5744bd432e5a967c485, type: 3}
+  m_audioClip: {fileID: 8300000, guid: bd77128dfeb369149885ca7afb91f794, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.2
   m_Pitch: 1
@@ -2442,8 +2442,8 @@ GameObject:
   - component: {fileID: 713188668213777899}
   - component: {fileID: 713188669488623391}
   - component: {fileID: 713188669488623390}
+  - component: {fileID: 713188669488623388}
   - component: {fileID: -3690705570827877465}
-  - component: {fileID: 713188668527805471}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2522,6 +2522,36 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1.0777489, y: 1.9264873, z: 0.5326824}
   m_Center: {x: -0.00071161985, y: 0.94489676, z: 0.0010660887}
+--- !u!114 &713188669488623388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713188668204360447}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5fae45ebbd80dd40928912fb7a45155, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitPoints: 100
+  isAttacking: 0
+  oneHandSword: {fileID: 713188667879309656}
+  twoHandSword: {fileID: 713188668568574797}
+  bow: {fileID: 713188667931787278}
+  isAlive: 1
+  arrow: {fileID: 959702918280600704, guid: c75e7ed4f89727a4bbb7a6a84afd1d19, type: 3}
+  healthPotions: 0
+  damage: 20
+  hasSilverKey: 0
+  hasGoldKey: 0
+  action: {fileID: 1552338418}
+  listen: {fileID: 1028034062575923586}
+  attackSound: {fileID: 8300000, guid: d08a6e2e3796cee40ae0338b03068883, type: 3}
+  getHitSound: {fileID: 8300000, guid: 00f6206703b4f4c42ab697e6045721a3, type: 3}
+  bowSound: {fileID: 8300000, guid: de1cc3c2bb35bd6489d8098472ce6a13, type: 3}
+  drinkSound: {fileID: 8300000, guid: d6f857c4b7ad2e9489214dd04313e203, type: 3}
+  buffSound: {fileID: 8300000, guid: 67ee6e0b84dfb044384b5ebea1ac5cc1, type: 3}
 --- !u!82 &-3690705570827877465
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2618,31 +2648,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &713188668527805471
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 713188668204360447}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3422541cd1315d4ea6e4e8a4b8e59cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  item:
-  - {fileID: 713188667879309656}
-  - {fileID: 713188668568574797}
-  - {fileID: 713188667931787278}
-  - {fileID: 137478, guid: 84ad69e92e6fe401c8848494bcedac7d, type: 3}
-  - {fileID: 1552338418}
-  - {fileID: 1028034062575923586}
-  say:
-  - {fileID: 8300000, guid: d08a6e2e3796cee40ae0338b03068883, type: 3}
-  - {fileID: 8300000, guid: 00f6206703b4f4c42ab697e6045721a3, type: 3}
-  - {fileID: 8300000, guid: de1cc3c2bb35bd6489d8098472ce6a13, type: 3}
-  - {fileID: 8300000, guid: d6f857c4b7ad2e9489214dd04313e203, type: 3}
-  - {fileID: 8300000, guid: 67ee6e0b84dfb044384b5ebea1ac5cc1, type: 3}
 --- !u!1 &713188668204362721
 GameObject:
   m_ObjectHideFlags: 0

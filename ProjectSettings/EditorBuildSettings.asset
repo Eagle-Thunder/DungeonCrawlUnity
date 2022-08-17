@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Prison.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
-    path: Assets/Scenes/Scene2.unity
-    guid: 3bea3e8d645cb2845ac1415a081e81c2
+    path: Assets/Scenes/Town.unity
+    guid: 42a9bad875cde4240950db4265f3628e
+  - enabled: 1
+    path: Assets/Scenes/BossArena.unity
+    guid: a7c029ad8ff4bd54f892a45a1a699121
   m_configObjects: {}

@@ -3,142 +3,97 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-internal enum Stance : int
-{
-    Engaged = 1,
-    Damageable = 2,
-    AttackReady = 4,
-    Alive = 8,
-    Aggressive = 16,
-    Agro,
-    InRange = 32,
-    Dieing = 64,
-    inRange = 128,
-    JumpAble = 256
-}
-internal enum Inventory:int
-{
-    SilverKey = 1,
-    GoldKey = 2,
-}
-internal enum Sound : int
-{
-    attack,
-    getHit,
-    bow,
-    drink,
-    buff
-}
-internal enum Item : int
-{
-    oneHandSword,
-    twoHandSword,
-    bow,
-    arrow,
-    action,
-	listen
-}
-internal class Entity
-{
-    private int stance = 0, inventory = 0;
-    internal bool AmIn(Stance s) => (stance & (int)s) != 0;
-    internal bool AmNotIn(Stance s) => (stance & (int)s) == 0;
-    internal void Enter(Stance s) => stance |= (int)s;
-    internal void Exit(Stance s) => stance &= ~(int)s;
-    internal bool HaveIn(Inventory s) => (inventory & (int)s) != 0;
-    internal bool HaveNotIn(Inventory s) => (inventory & (int)s) == 0;
-    internal void Get(Inventory s) => inventory |= (int)s;
-    internal void Loose(Inventory s) => inventory &= ~(int)s;
-}
-internal class PlayerStats
-{
-    internal float speed, jumpForce, attackRate, baseDamage, damageMultiplier;
-    internal float iFrames, offset, horizontalInput, verticalInput, jumpInput, turn;
-    internal int equippedWeapon;
-    public int healthPotions;
-    public float damage, hitPoints;
-    internal PlayerStats()
-    {
-        speed = 300f;
-        jumpForce = 3;
-        attackRate = 1f;
-        baseDamage = 20;
-        damageMultiplier = 1;
-        iFrames = 1;
-        offset = 1.5f;
-        equippedWeapon = 0;
-        healthPotions = 0;
-        hitPoints = 100;
-    }
-}
-internal class PlayerComponents
-{
-    internal readonly Rigidbody body;
-    internal readonly Animator animator;
-    internal readonly AudioSource voice;
-    internal readonly PlayerStats stat;
-    internal PlayerComponents(Rigidbody rb, Animator an, AudioSource pa)
-    {
-        body = rb;
-        animator = an;
-        voice = pa;
-        stat = new PlayerStats();
-    }
-}
 public class PlayerController : MonoBehaviour
 {
-    public List<GameObject> item;
-    public List<AudioClip> say;
-	Entity I;
-    PlayerComponents My;
-
-	void Start()
+    private float speed = 300f;
+    private float horizontalInput;
+    private float verticalInput;
+    private float jumpInput;
+    private float jumpForce = 3;
+    private Rigidbody playerRb;
+    private float turn;
+    private Animator playerAnimator;
+    private bool canAttack = true;
+    private float attackRate = 1f;
+    public float hitPoints = 100;
+    private float baseDamage = 20;
+    public bool isAttacking = false;
+    private bool canJump = true;
+    public GameObject oneHandSword;
+    public GameObject twoHandSword;
+    public GameObject bow;
+    private float damageMultiplier = 1;
+    public bool isAlive = true;
+    public GameObject arrow;
+    private int equippedWeapon = 0;
+    private Vector3 offset = new Vector3(0, 1.5f, 0f);
+    public int healthPotions = 0;
+    public float damage;
+    public bool hasSilverKey = false;
+    public bool hasGoldKey = false;
+    public GameObject action;
+    public GameObject listen;
+    private float iFrames = 1;
+    private bool canTakeDamage = true;
+    private AudioSource playerAudio;
+    public AudioClip attackSound;
+    public AudioClip getHitSound;
+    public AudioClip bowSound;
+    public AudioClip drinkSound;
+    public AudioClip buffSound;
+    // Start is called before the first frame update
+    void Start()
     {
-        I = new Entity();
-        My=new PlayerComponents(
-            GetComponent<Rigidbody>(),
-            GetComponent<Animator>(),
-            GetComponent<AudioSource>()
-            );
-        I.Enter(Stance.Alive);
-        I.Enter(Stance.Damageable);
-        I.Enter(Stance.JumpAble);
-        I.Enter(Stance.AttackReady);
+        playerRb = GetComponent<Rigidbody>();
+        playerAnimator = GetComponent<Animator>();
         Cursor.lockState = CursorLockMode.Locked;
+        playerAudio = GetComponent<AudioSource>();
     }
+
+    // Update is called once per frame
     void FixedUpdate()
     {
-        if (I.AmNotIn(Stance.Alive)) return;
-        My.stat.horizontalInput = Input.GetAxis("Horizontal");
-        My.stat.verticalInput = Input.GetAxis("Vertical");
-        My.stat.jumpInput = Input.GetAxis("Jump");
-        if (My.stat.jumpInput > 0 && I.AmIn(Stance.JumpAble)) My.body.AddForce(transform.up * My.stat.jumpForce, ForceMode.VelocityChange);
-        Vector3 velocity = My.stat.speed * Time.fixedDeltaTime * ((transform.forward * My.stat.verticalInput) + (transform.right * My.stat.horizontalInput));
-        velocity.y = My.body.velocity.y;
-        My.body.velocity = velocity;
+        if (isAlive)
+        {
+            Move();
+        }
     }
     void Update()
     {
-        if (I.AmNotIn(Stance.Alive)) return;
-        Rotate();
-        Attack();
-        AnimateMove();
-        EquipWeapon();
-        Act();
-        CapHP();
-        Heal();
+        if (isAlive)
+        {
+            Rotate();
+            Attack();
+            AnimateMove();
+            EquipWeapon();
+            Act();
+            CapHP();
+            Heal();
+        }
     }
-    public int HealthPotions() => My.stat.healthPotions;
-    public float HitPoints() => My.stat.hitPoints;
-    public float Damage() => My.stat.damage;
-    public bool IsAttacking() => I.AmIn(Stance.Engaged);
-    public bool IsAlive() => I.AmIn(Stance.Alive);
-    public bool HasSilverKey() => I.HaveIn(Inventory.SilverKey);
-    public bool HasGoldKey() => I.HaveIn(Inventory.GoldKey);
+    void Move()
+    {
+        horizontalInput = Input.GetAxis("Horizontal");
+        verticalInput = Input.GetAxis("Vertical");
+        jumpInput = Input.GetAxis("Jump");
+        if (jumpInput > 0 && canJump)
+        {
+            playerRb.AddForce(transform.up * jumpForce, ForceMode.VelocityChange);
+        }
+        Vector3 velocity = ((transform.forward * verticalInput) + (transform.right * horizontalInput)) * speed * Time.fixedDeltaTime;
+        velocity.y = playerRb.velocity.y;
+        playerRb.velocity = velocity;
+    }
     void Act()
     {
-        if (Input.GetKeyDown(KeyCode.E)) StartCoroutine(Action(item[(int)Item.action]));
-        else if (Input.GetKeyDown(KeyCode.T)) StartCoroutine(Action(item[(int)Item.listen]));
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            StartCoroutine(Action(action));
+        }
+        else if (Input.GetKeyDown(KeyCode.T))
+        {
+            StartCoroutine(Action(listen));
+        }
     }
     IEnumerator Action(GameObject objectToSet)
     {
@@ -148,139 +103,198 @@ public class PlayerController : MonoBehaviour
     }
     void AnimateMove()
     {
-        My.animator.SetFloat("vertical_input", My.stat.verticalInput);
-        My.animator.SetFloat("horizontal_input", My.stat.horizontalInput);
-        if (My.stat.jumpInput > 0 && I.AmIn(Stance.JumpAble)) My.animator.SetTrigger("jump");
-        My.animator.SetFloat("jump_input", My.stat.jumpInput);
+        playerAnimator.SetFloat("vertical_input", verticalInput);
+        playerAnimator.SetFloat("horizontal_input", horizontalInput);
+        if (jumpInput > 0 && canJump)
+        {
+            playerAnimator.SetTrigger("jump");
+        }
+        playerAnimator.SetFloat("jump_input", jumpInput);
     }
     void Rotate()
     {
-        My.stat.turn += Input.GetAxis("Mouse X");
-        transform.localRotation = Quaternion.Euler(transform.rotation.x, My.stat.turn, transform.rotation.y);
+        turn += Input.GetAxis("Mouse X");
+        transform.localRotation = Quaternion.Euler(transform.rotation.x, turn, transform.rotation.y);
     }
     void Attack()
     {
-        if (Input.GetMouseButtonDown(0) && I.AmIn(Stance.AttackReady))
+        if (Input.GetMouseButtonDown(0) && canAttack)
         {
-            I.Enter(Stance.Engaged);
-            I.Exit(Stance.AttackReady);
-            My.animator.SetTrigger("Attack");
-            if (My.stat.equippedWeapon == 3)
+            isAttacking = true;
+            canAttack = false;
+            playerAnimator.SetTrigger("Attack");
+            if (equippedWeapon == 3)
             {
-                My.voice.PlayOneShot(say[(int)Sound.bow]);
+                playerAudio.PlayOneShot(bowSound);
                 Invoke("ShootArrow", 0.3f);
             } 
-            else My.voice.PlayOneShot(say[(int)Sound.attack]);
-            Invoke("ResetAttack", My.stat.attackRate);
+            else
+            {
+                playerAudio.PlayOneShot(attackSound);
+            }
+            //Debug.Log("Attak!");
+            Invoke("ResetAttack", attackRate);
         }
     }
-    void ShootArrow() => Instantiate(item[(int)Item.arrow], transform.position + Vector3.up*My.stat.offset, transform.rotation * Quaternion.Euler(-1.5f, 1, 1));
+    void ShootArrow()
+    {
+        Instantiate(arrow, transform.position + offset, transform.rotation * Quaternion.Euler(-1.5f, 1, 1));
+    }
     void ResetAttack()
     {
-        I.Enter(Stance.AttackReady);
-        I.Exit(Stance.Engaged);
+        canAttack = true;
+        isAttacking= false;
     }
     public void GetDamaged(float damage)
     {
-        if (I.AmNotIn(Stance.Alive) || I.AmNotIn(Stance.Damageable)) return;
-        My.voice.PlayOneShot(say[(int)Sound.getHit]);
-        My.stat.hitPoints -= damage;
-        I.Exit(Stance.Damageable);
-        Invoke("ResetIFrames", My.stat.iFrames);
-        if (My.stat.hitPoints <= 0)
+        if (isAlive && canTakeDamage)
         {
-            I.Exit(Stance.Alive);
-            My.animator.SetTrigger("die");
+            playerAudio.PlayOneShot(getHitSound);
+            hitPoints -= damage;
+            canTakeDamage = false;
+            Invoke("ResetIFrames", iFrames);
+            if (hitPoints <= 0)
+            {
+                isAlive = false;
+                playerAnimator.SetTrigger("die");
+            }
+            //else
+            //{
+            //    playerAnimator.SetTrigger("getHit");
+            //}
         }
     }
-    private void ResetIFrames() => I.Enter(Stance.Damageable);
+    private void ResetIFrames()
+    {
+        canTakeDamage = true;
+    }
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) I.Enter(Stance.JumpAble);
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            canJump = true;
+        }
     }
     private void OnCollisionExit(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground")) I.Exit(Stance.JumpAble);
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            canJump = false;
+        }
     }
-    private void SetWepon(Item weapon,float rating,float multiplier)
-	{
-            for(int i=(int)Item.oneHandSword; i<=(int)Item.bow; i++) item[i].SetActive(false);
-            item[(int)weapon].SetActive(true);
-            My.stat.equippedWeapon = (int)weapon+1;
-            My.animator.SetInteger("attackAnimation", My.stat.equippedWeapon);
-            My.stat.attackRate = rating;
-            My.stat.damageMultiplier = multiplier;
-            My.stat.damage = My.stat.baseDamage * My.stat.damageMultiplier;
-	}
     private void EquipWeapon()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1)) SetWepon(Item.oneHandSword, 1f, 1f);
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) SetWepon(Item.twoHandSword, 1.7f, 2f);
-        else if (Input.GetKeyDown(KeyCode.Alpha3)) SetWepon(Item.bow,0.8f,0.3f);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            equippedWeapon = 1;
+            playerAnimator.SetInteger("attackAnimation", equippedWeapon);
+            oneHandSword.SetActive(true);
+            twoHandSword.SetActive(false);
+            bow.SetActive(false);
+            attackRate = 1f;
+            damageMultiplier = 1;
+            damage = baseDamage * damageMultiplier;
+            Debug.Log("One Hand Sword");
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            equippedWeapon = 2;
+            oneHandSword.SetActive(false);
+            twoHandSword.SetActive(true);
+            bow.SetActive(false);
+            attackRate = 1.7f;
+            damageMultiplier = 2;
+            damage = baseDamage * damageMultiplier;
+            playerAnimator.SetInteger("attackAnimation", equippedWeapon);
+            Debug.Log("Two Hand Sword");
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            equippedWeapon = 3;
+            oneHandSword.SetActive(false);
+            twoHandSword.SetActive(false);
+            bow.SetActive(true);
+            attackRate = 0.8f;
+            damageMultiplier = 0.3f;
+            damage = baseDamage * damageMultiplier;
+            playerAnimator.SetInteger("attackAnimation", equippedWeapon);
+            Debug.Log("Bow");
+        }
     }
     public void IncreaseDamage()
     {
-        My.stat.baseDamage += 10;
-        My.stat.damage = My.stat.baseDamage * My.stat.damageMultiplier;
+        baseDamage += 10;
+        damage = baseDamage * damageMultiplier;
     }
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Damage boost"))
         {
-            My.voice.PlayOneShot(say[(int)Sound.buff]);
+            playerAudio.PlayOneShot(buffSound);
             IncreaseDamage();
             Destroy(other.gameObject);
         }
         if (other.CompareTag("Health Potion"))
         {
-            My.voice.PlayOneShot(say[(int)Sound.buff]);
-            My.stat.healthPotions += 1;
+            playerAudio.PlayOneShot(buffSound);
+            healthPotions += 1;
             Destroy(other.gameObject);
         }
         if (other.CompareTag("Silver Key"))
         {
-            My.voice.PlayOneShot(say[(int)Sound.buff]);
-            I.Get(Inventory.SilverKey);
+            playerAudio.PlayOneShot(buffSound);
+            hasSilverKey = true;
             Destroy(other.gameObject);
         }
         if (other.CompareTag("Gold Key"))
         {
-            My.voice.PlayOneShot(say[(int)Sound.buff]);
-            I.Get(Inventory.GoldKey);
+            playerAudio.PlayOneShot(buffSound);
+            hasGoldKey = true;
             Destroy (other.gameObject);
         }
     }
     void Heal()
     {
-        if (!Input.GetKeyDown(KeyCode.Q) || My.stat.healthPotions < 0) return;
-        My.voice.PlayOneShot(say[(int)Sound.drink]);
-        My.stat.hitPoints += 30;
-        My.stat.healthPotions--;
+        if (Input.GetKeyDown(KeyCode.Q) && healthPotions >=0)
+        {
+            playerAudio.PlayOneShot(drinkSound);
+            hitPoints += 30;
+            healthPotions--;
+        }
     }
     void CapHP()
     {
-        if (My.stat.hitPoints > 100) My.stat.hitPoints = 100;
-        else if (My.stat.hitPoints < 0) My.stat.hitPoints = 0;
+        if (hitPoints > 100)
+        {
+            hitPoints = 100;
+        }
+        else if (hitPoints < 0)
+        {
+            hitPoints = 0;
+        }
     }
     private void OnDestroy()
     {
-        PlayerPrefs.SetFloat("hitPoints", My.stat.hitPoints);
-        PlayerPrefs.SetFloat("defaultDamage", My.stat.damage);
-        PlayerPrefs.SetInt("healthPotions", My.stat.healthPotions);
+        PlayerPrefs.SetFloat("hitPoints", hitPoints);
+        PlayerPrefs.SetFloat("defaultDamage", damage);
+        PlayerPrefs.SetInt("healthPotions", healthPotions);
+        //PlayerPrefs.SetFloat("Defense", defense);
     }
     private void OnEnable()
     {
         if (SceneManager.GetActiveScene().name == "Prison")
         {
-            My.stat.hitPoints = 100;
-            My.stat.baseDamage = 20;
-            My.stat.healthPotions = 0;
+            hitPoints = 100;
+            baseDamage = 20;
+            healthPotions = 0;
+            //defense = 10;
         }
         else
         {
-            My.stat.hitPoints = PlayerPrefs.GetFloat("hitPoints", 100);
-            My.stat.baseDamage = PlayerPrefs.GetFloat("defaultDamage", 20);
-            My.stat.healthPotions = PlayerPrefs.GetInt("healthPotions", 0);
+            hitPoints = PlayerPrefs.GetFloat("hitPoints", 100);
+            baseDamage = PlayerPrefs.GetFloat("defaultDamage", 20);
+            healthPotions = PlayerPrefs.GetInt("healthPotions", 0);
+            //defense = PlayerPrefs.GetFloat("Defense", 10);
         }
     }
 }

@@ -4,16 +4,23 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - Destructable wall
   - PlayerSword
-  - Scene2
-  - Scene1
-  - Silver Key
-  - Gold Key
+  - Enemy
+  - Ground
+  - Player Weapon
   - Health Potion
   - Damage boost
-  - Player Weapon
-  - Ground
-  - Enemy
+  - Silver Key
+  - Gold Key
+  - Action
+  - Kill Wall
+  - Scene2
+  - Scene1
+  - Prison
+  - Town
+  - BossArena
+  - Listen
   layers:
   - Default
   - TransparentFX

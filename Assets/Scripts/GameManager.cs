@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -10,18 +12,40 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI goldKey;
     public TextMeshProUGUI controls;
     private PlayerController player;
-    void Start() => player = GameObject.Find("Player").GetComponent<PlayerController>();
+    // Start is called before the first frame update
+    void Start()
+    {
+        player = GameObject.Find("Player").GetComponent<PlayerController>();
+    }
+
+    // Update is called once per frame
     void Update()
     {
-        hitPoints.text = "HP: " + player.HitPoints();
-        damage.text = "DMG: " + player.Damage();
-        potions.text = "Potions: " + player.HealthPotions();
-        if (player.HasSilverKey()) silverKey.gameObject.SetActive(true);
-        if (player.HasGoldKey()) goldKey.gameObject.SetActive(true);
+        hitPoints.text = "HP: " + player.hitPoints;
+        damage.text = "DMG: " + player.damage;
+        potions.text = "Potions: " + player.healthPotions;
+        if (player.hasSilverKey)
+        {
+            silverKey.gameObject.SetActive(true);
+        }
+        if (player.hasGoldKey)
+        {
+            goldKey.gameObject.SetActive(true);
+        }
         ShowControls();
     }
     void ShowControls()
     {
-        if (Input.GetKeyDown(KeyCode.R)) controls.gameObject.SetActive(!controls.IsActive());
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (controls.IsActive())
+            {
+                controls.gameObject.SetActive(false);
+            }
+            else
+            {
+                controls.gameObject.SetActive(true);
+            }
+        }
     }
 }
