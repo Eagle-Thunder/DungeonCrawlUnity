@@ -1,21 +1,41 @@
-# DungeonCrawlUnity
-A short experiment to assess the viability of writting an RPG game in Unity
+Dungeon Crawl is an old school RPG. 
 
-# The WHY
-This started out as a challenge to help us understand complex relations between objects.
+Your character starts in the dungeon of a castle and you have to fight your way through various guards, free other prisoners, gather power-ups, find keys in order to progress to the next levels and fight the final boss.
 
-# The WHAT
-The project as it was given to us was a 2D game. We, my team ans I, thought it would be much better to do it 3D.
+Because at the time we did not know how to use Git together with a unity project, we used Unity packages for version control instead of Git
 
-# The HOW
-Unity! That's how! It is a game engine that allows placing assets on a map and defining their behaviour via C# scripting.
-And that's what we did. We came up with a story, sought out relevant assets, scripted them and placed them on the map
+The main technologies that were used to create this project were: the Unity Game Engine, C# as the programming language, Visual Studio as the IDE, the game assets were downloaded from the Unity Asset Store and the sound effects from Youtube
 
-# The WHO
-This experiment was coded by a team of three - myself, Sergiu Pert and Aleca Dumitru.
+![unity](https://user-images.githubusercontent.com/89579316/185093452-6907d46e-eb60-4e24-9054-3602fc84f020.jpg)
+![C#](https://user-images.githubusercontent.com/89579316/185092875-395875dc-ea3e-46df-81d1-05cc0194f2f9.jpg)
+![VS](https://user-images.githubusercontent.com/89579316/185092879-62e4ec88-59eb-4b91-8eb6-c9fbb857cf16.jpg)
 
-# The GAME
-The game takes place in 3 stages (maps) and allows the players to fight their way through various enemies,
-while collecting items and searching for the door to open the next level. Enemies increase in strength but players levelup as well.
-Melee and ranged weapon are available, along with magic to allow players to find their way out through the hoards of enemies.
-The game is only over once the last boss is defeated, though, and that is a bit of a challenge.
+Controls:
+
+Movement: W,A,S,D
+
+Equiping different weapons: 1,2,3
+
+Using a healing potion: Q
+
+Attack: Left Mouse Button
+
+Interact: E
+
+We uploaded a fully playable version on Unity Play (playing in fullscreen mode is highly recomended): https://play.unity.com/mg/other/my-new-microgame-6330
+
+The project was completed in 4 days by a team of 3 people:
+
+- Sergiu Pert
+
+- Radu Brezeanu
+
+- Aleca Dumitru
+
+We made short fun video presentation of the team, technologies and the project evolution: https://www.youtube.com/watch?v=53zF8IG1pzY
+
+![dc1](https://user-images.githubusercontent.com/89579316/185094259-357ad22f-fa90-4f94-b64f-5b93ba2b9806.JPG)
+
+![dc2](https://user-images.githubusercontent.com/89579316/185094321-9e1f7e17-6daf-4d55-ba9e-e2cf728dc277.JPG)
+
+![dc3](https://user-images.githubusercontent.com/89579316/185094343-471a5663-e7e6-48d1-a408-d056c5c82549.JPG)
